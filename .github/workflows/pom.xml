@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.solven-eu.cleanthat</groupId>
+		<artifactId>parent</artifactId>
+		<version>2.23-SNAPSHOT</version>
+		<relativePath>parent</relativePath>
+	</parent>
+	<artifactId>aggregator-cleanthat</artifactId>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>parent</module>
+		<module>any-language</module>
+		<module>code-providers</module>
+		<module>local</module>
+		<module>git</module>
+		<module>github</module>
+		<module>gitlab</module>
+		<module>config</module>
+		<module>code-cleaners</module>
+
+		<!-- The refactoring cross-AST logic. Typically holds IMutator -->
+		<module>refactorer</module>
+
+		<module>annotations</module>
+
+		<!-- JVM languages -->
+		<module>java</module>
+		<module>java-eclipse</module>
+		<!-- mvn with Java and Kotlin is broken (as we are too weak in Kotlin-->
+		<!--module>kotlin</module-->
+
+		<module>runnable</module>
+		<module>lambda</module>
+
+		<module>test-helpers</module>
+		<module>refactorer-test-helpers</module>
+
+		<!-- Build automation tools -->
+		<module>maven</module>
+
+		<!-- <module>gradle</module> -->
+		<!-- Enable running spotless in GithubApp -->
+		<!-- (Not enabling cleanthat through spotless) -->
+		<module>spotless</module>
+
+		<module>openrewrite</module>
+	</modules>
+
+	<scm>
+		<!-- Only developerConnection was not set in parent po;m as its own parent was not a SNAPSHOT -->
+		<developerConnection>${scm.developerConnection}</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<properties>
+		<release.suffix>RELEASE</release.suffix>
+
+		<!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+		<jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+		<sentry-spring.version>7.12.1</sentry-spring.version>
+		<!-- Used for agnostic AWS-Lambda -->
+		<spring-cloud.version>2021.0.9</spring-cloud.version>
+
+		<!-- quality properties -->
+		<jacoco.branch.ratio>0.00</jacoco.branch.ratio>
+		<jacoco.instruction.ratio>0.10</jacoco.instruction.ratio>
+		<!-- By default, there is no additional argument -->
+		<surefire.additionalArgument />
+
+		<!-- Beware, changing this version often lead to a change of actual formatting -->
+		<!-- https://github.com/jmini/ecentral/tree/master/repo/fr/jmini/ecentral/eclipse-platform-dependencies -->
+		<eclipse.version>4.25</eclipse.version>
+		<!-- Deprecated -->
+		<!-- <eclipse.jt.core.version>3.26.0</eclipse.jt.core.version> -->
+		<!-- <eclipse.jt.core.version>3.30.0</eclipse.jt.core.version> -->
+		<!-- <eclipse.jdt.core.manipulation.version>1.16.100</eclipse.jdt.core.manipulation.version> -->
+		<maven.version>3.9.6</maven.version>
+		<maven-resolver.version>1.9.18</maven-resolver.version>
+
+		<!-- Not provided as spotless is not executed through maven in CleanThat -->
+		<maven.scope>compile</maven.scope>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-bom -->
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>aws-java-sdk-bom</artifactId>
+				<version>1.12.765</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/org.checkerframework/checker-qual -->
+			<dependency>
+				<!-- Guava brings 2.5.2 while Pepper brings 2.9.0 -->
+				<groupId>org.checkerframework</groupId>
+				<artifactId>checker-qual</artifactId>
+				<version>3.45.0</version>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
+			<dependency>
+				<groupId>com.nimbusds</groupId>
+				<artifactId>nimbus-jose-jwt</artifactId>
+				<version>9.40</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>33.2.1-jre</version>
+			</dependency>
+
+			<!-- <dependency> -->
+			<!-- <groupId>org.eclipse.jdt</groupId> -->
+			<!-- <artifactId>org.eclipse.jdt.core</artifactId> -->
+			<!-- <version>${eclipse.jt.core.version}</version> -->
+			<!-- </dependency> -->
+			<!-- https://mvnrepository.com/artifact/org.eclipse.jdt/org.eclipse.jdt.core.manipulation -->
+			<!-- <dependency> -->
+			<!-- https://bugs.eclipse.org/bugs/show_bug.cgi?id=178429 -->
+			<!-- Used to rely on Eclipse CleanUp actions -->
+			<!-- <groupId>org.eclipse.jdt</groupId> -->
+			<!-- <artifactId>org.eclipse.jdt.core.manipulation</artifactId> -->
+			<!-- <version>${eclipse.jdt.core.manipulation.version}</version> -->
+			<!-- </dependency> -->
+			<!-- This block is similar to cleanthat-maven-plugin one -->
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-plugin-api</artifactId>
+				<version>${maven.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-core</artifactId>
+				<version>${maven.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-model</artifactId>
+				<version>${maven.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-resolver-provider</artifactId>
+				<!-- https://mvnrepository.com/artifact/org.apache.maven/maven-resolver-provider -->
+				<version>${maven.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.resolver</groupId>
+				<artifactId>maven-resolver-api</artifactId>
+				<version>${maven-resolver.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.resolver</groupId>
+				<artifactId>maven-resolver-spi</artifactId>
+				<version>${maven-resolver.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.resolver</groupId>
+				<artifactId>maven-resolver-util</artifactId>
+				<version>${maven-resolver.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.resolver</groupId>
+				<artifactId>maven-resolver-impl</artifactId>
+				<version>${maven-resolver.version}</version>
+				<scope>${maven.scope}</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.resolver</groupId>
+				<artifactId>maven-resolver-connector-basic</artifactId>
+				<version>${maven-resolver.version}</version>
+				<!--				<scope>${maven.scope}</scope>-->
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.resolver</groupId>
+				<artifactId>maven-resolver-transport-file</artifactId>
+				<version>${maven-resolver.version}</version>
+				<!--				<scope>${maven.scope}</scope>-->
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.resolver</groupId>
+				<artifactId>maven-resolver-transport-http</artifactId>
+				<version>${maven-resolver.version}</version>
+				<!--				<scope>${maven.scope}</scope>-->
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- https://maven.apache.org/plugins/maven-resources-plugin/ -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<configuration>
+						<delimiters>
+							<delimiter>${resource.delimiter}</delimiter>
+						</delimiters>
+						<useDefaultDelimiters>false</useDefaultDelimiters>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.12.1</version>
+					<configuration>
+						<compilerArgs>
+							<!-- https://errorprone.info/docs/installation -->
+							<arg>-XDcompilePolicy=simple</arg>
+							<!-- https://github.com/google/error-prone/issues/3749 -->
+							<!--							<arg>-Xplugin:ErrorProne -XepDisableWarningsInGeneratedCode</arg>-->
+						</compilerArgs>
+						<annotationProcessorPaths>
+							<!-- https://github.com/google/error-prone/issues/3749 -->
+							<path>
+								<!-- https://errorprone.info/docs/installation -->
+								<groupId>com.google.errorprone</groupId>
+								<artifactId>error_prone_core</artifactId>
+								<version>${error-prone.version}</version>
+							</path>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+				<plugin>
+					<!-- http://maven.apache.org/maven-release/maven-release-plugin/ -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<configuration>
+						<!-- Prevent git to clone the whole repo which is quite slow -->
+						<!-- https://issues.apache.org/jira/browse/MRELEASE-777 -->
+						<localCheckout>true</localCheckout>
+						<pushChanges>true</pushChanges>
+						<!-- This should ensure the next SNAPSHOT does compile, and it installed in local repo -->
+						<!-- TODO Is this useful only for Benoit Lacelle conveniency? -->
+						<!-- <completionGoals>install -DskipTests</completionGoals> -->
+						<!-- All modules shall have the same version -->
+						<autoVersionSubmodules>true</autoVersionSubmodules>
+						<!-- On each release, we want to deploy jars to Sonatype -->
+						<goals>deploy</goals>
+						<!-- Same convention as Spring -->
+						<tagNameFormat>v@{project.version}.${release.suffix}</tagNameFormat>
+						<!-- Skip style for faster process -->
+						<!-- We need javadoc to deploy to Sonatype -->
+						<arguments>-Dmaven.javadoc.skip=true -DskipTests -PskipStyle -Dmaven.javadoc.skip=false</arguments>
+						<useReleaseProfile>false</useReleaseProfile>
+						<!-- http://central.sonatype.org/pages/apache-maven.html -->
+						<!-- Sonatype profile is defined in cleanthat-parent -->
+						<releaseProfiles>Sonatype</releaseProfiles>
+					</configuration>
+				</plugin>
+				<plugin>
+					<!-- https://www.eclemma.org/jacoco/trunk/doc/maven.html -->
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco-maven-plugin.version}</version>
+					<configuration>
+						<excludes>
+							<!-- Exclude JooQ generated classes -->
+							<!-- https://stackoverflow.com/questions/27799419/maven-jacoco-configuration-exclude-classes-packages-from-report-not-working -->
+							<exclude>**/generated/**/*</exclude>
+							<!-- Hacked in retriever-proxy module (Unclear why the last '*' is needed) -->
+							<exclude>**/org/apache/pdfbox/pdmodel/font/PDSimpleFont.*</exclude>
+						</excludes>
+						<rules>
+							<rule>
+								<!-- BUNDLE, PACKAGE, CLASS, SOURCEFILE or METHOD -->
+								<element>BUNDLE</element>
+								<limits>
+									<limit>
+										<!-- INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD, CLASS -->
+										<counter>BRANCH</counter>
+										<!-- TOTALCOUNT, COVEREDCOUNT, MISSEDCOUNT, COVEREDRATIO, MISSEDRATIO -->
+										<value>COVEREDRATIO</value>
+										<minimum>${jacoco.branch.ratio}</minimum>
+									</limit>
+									<limit>
+										<!-- INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD, CLASS -->
+										<counter>INSTRUCTION</counter>
+										<!-- TOTALCOUNT, COVEREDCOUNT, MISSEDCOUNT, COVEREDRATIO, MISSEDRATIO -->
+										<value>COVEREDRATIO</value>
+										<minimum>${jacoco.instruction.ratio}</minimum>
+									</limit>
+								</limits>
+							</rule>
+						</rules>
+					</configuration>
+					<executions>
+						<execution>
+							<id>prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>report</id>
+							<goals>
+								<goal>report</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>prepare-agent-integration</id>
+							<goals>
+								<goal>prepare-agent-integration</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>report-integration</id>
+							<goals>
+								<goal>report-integration</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>check</id>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<!-- https://maven.apache.org/surefire/maven-failsafe-plugin/ -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<configuration>
+						<runOrder>alphabetical</runOrder>
+						<!-- http://maven.apache.org/surefire/maven-surefire-plugin/examples/fork-options-and-parallel-execution.html -->
+						<!--<forkCount>0.5C</forkCount> -->
+						<excludes>
+							<exclude>**/*Test.java</exclude>
+							<exclude>**/Test*.java</exclude>
+							<exclude>**/*TestCase.java</exclude>
+						</excludes>
+					</configuration>
+					<executions>
+						<execution>
+							<id>integration-test</id>
+							<goals>
+								<goal>integration-test</goal>
+								<goal>verify</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<!-- https://maven.apache.org/surefire/maven-surefire-plugin/ -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<runOrder>alphabetical</runOrder>
+						<!-- http://maven.apache.org/surefire/maven-surefire-plugin/examples/fork-options-and-parallel-execution.html -->
+						<!--<forkCount>0.5C</forkCount> -->
+						<excludes>
+							<exclude>**/*IT.java</exclude>
+							<exclude>**/IT*.java</exclude>
+							<exclude>**/*ITCase.java</exclude>
+						</excludes>
+						<!-- Add ${argLine} to maintain the argument from Jacoco -->
+						<!-- https://groups.google.com/forum/#!topic/jacoco/LzmCezW8VKA -->
+						<!-- -XX:+StartAttachListener is for http://comments.gmane.org/gmane.comp.java.openjdk.macosx-port.devel/6094 -->
+						<!-- -Djava.util.logging.config.file so that tests fallback on logback -->
+						<argLine><![CDATA[-Xmx256M -XX:+StartAttachListener -Djava.util.logging.config.file=logging.properties -Djdk.attach.allowAttachSelf=true ${surefire.additionalArgument} ${argLine}]]></argLine>
+					</configuration>
+				</plugin>
+				<plugin>
+					<!-- Generate a git.properties file only in this 'helpers' jar -->
+					<!-- https://github.com/git-commit-id/git-commit-id-maven-plugin -->
+					<groupId>io.github.git-commit-id</groupId>
+					<artifactId>git-commit-id-maven-plugin</artifactId>
+					<version>8.0.2</version>
+					<configuration>
+						<format>json</format>
+						<generateGitPropertiesFile>true</generateGitPropertiesFile>
+						<generateGitPropertiesFilename>${project.build.outputDirectory}/git.json</generateGitPropertiesFilename>
+						<!-- https://github.com/ktoso/maven-git-commit-id-plugin/pull/65 -->
+						<injectAllReactorProjects>false</injectAllReactorProjects>
+					</configuration>
+					<executions>
+						<execution>
+							<id>get-the-git-infos</id>
+							<goals>
+								<goal>revision</goal>
+							</goals>
+							<phase>process-resources</phase>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>
